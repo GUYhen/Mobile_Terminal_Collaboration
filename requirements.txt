@@ -1,0 +1,9 @@
+numpy
+scipy
+torch
+torchvision
+pyyaml
+pillow
+cvxpy
+scikit-learn
+momentfm

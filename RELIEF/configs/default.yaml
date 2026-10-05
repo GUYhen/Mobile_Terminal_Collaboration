@@ -1,0 +1,100 @@
+seed: 0
+device: cuda
+out_dir: runs/relief
+method: relief
+
+data:
+  dataset: pamap2
+  root: ./data/PAMAP2_Dataset/Protocol
+  window_size: 256
+  stride: 50
+  sample_rate_hz: 50
+  test_ratio: 0.2
+  val_subjects: []
+  num_clients: null
+  dirichlet_beta: 0.3
+  class_reweighting: false
+  force_device_type: null
+
+datasets:
+  pamap2:
+    modalities: [acc, gyro, mag, hr]
+    num_classes: 12
+    raw_sample_rate_hz: 100
+    excluded_subjects: [109]
+    device_type_counts: {full: 3, acc_gyro: 3, acc_only: 2}
+    rare_modalities: [mag, hr]
+  mhealth:
+    modalities: [acc, gyro, mag, ecg]
+    num_classes: 12
+    raw_sample_rate_hz: 50
+    excluded_subjects: []
+    device_type_counts: {full: 3, acc_gyro: 3, acc_only: 4}
+    rare_modalities: [mag, ecg]
+
+model:
+  backbone: cnn
+  cnn:
+    channels: [64, 128]
+    kernel_size: 5
+    pool: 2
+  moment:
+    name: AutonLab/MOMENT-1-small
+    seq_len: 512
+  patchtst:
+    d_model: 128
+    n_layers: 3
+    n_heads: 4
+    d_ff: 256
+    patch_len: 16
+    patch_stride: 8
+    checkpoint: null
+  fusion_dim: 128
+  rho: 8
+  lora_targets: [q, v, wi, wi_0, wi_1, wo]
+  head_hidden: 64
+  L_H: 2
+  dropout: 0.2
+  b_mode: shared
+
+fl:
+  R: 200
+  E: 5
+  batch_size: 32
+  lr: 1.0e-3
+  participation: 1.0
+
+relief:
+  gamma: 0.9
+  lam: 1.0
+  aggregation: cohort
+  b_aggregation: modality_count
+  allocation: divergence
+  mandatory_inclusion: true
+  Q: null
+  train_scope: accessible
+  tstar:
+    lo_mult: 0.5
+    hi_mult: 2.0
+    iters: 4
+    refresh_every: 50
+
+system:
+  device_types:
+    full: {modalities: [all], tops: 275.0, active_power_w: 60.0, bandwidth_mbps: 100.0}
+    acc_gyro: {modalities: [acc, gyro], tops: 21.0, active_power_w: 15.0, bandwidth_mbps: 50.0}
+    acc_only: {modalities: [acc], tops: 5.0, active_power_w: 5.0, bandwidth_mbps: 20.0}
+  idle_power_ratio: 0.2
+  comm_power_ratio: 0.5
+  sync_latency_s: 0.05
+  bytes_per_param: 4
+  dynamic_drop_frac: 0.0
+
+eval:
+  tta_threshold: 0.85
+  eval_every: 1
+  batch_size: 256
+  critical_f1_threshold: 0.5
+  critical_classes_file: null
+  diagnostics_every: 0
+  utility_probe: false

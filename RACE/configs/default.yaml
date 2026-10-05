@@ -1,0 +1,100 @@
+seed: 0
+device: cuda
+
+platoon:
+  N: 20
+  v_init: [15.0, 20.0]
+  gap_init: [10.0, 15.0]
+  d: 5.0
+  a_max: 0.73
+  b_max: 1.67
+  d_min: 2.0
+  t_min: 1.5
+  v_des: 30.0
+  delta: 4.0
+  tau: 1.0
+
+channel:
+  K: 4
+  B: 1.0e+6
+  alpha: 3.76
+  eta: 1.0e-2
+  sigma2_dbm: -174.0
+  P_n_dbm: 15.0
+  P: 0.1
+
+compute:
+  mu: 1.0e+7
+  G_n: 5.0e+8
+  kappa: 1.0e-28
+  e_max: 0.1
+  D: 1.008e+7
+
+resource:
+  solver: numerical
+  tol: 1.0e-6
+  max_iter: 200
+
+flmd:
+  Lambda_Theta: 0.3
+  Lambda_min: 0.05
+  Lambda_max: 0.5
+  beta_Lambda: 1.0
+  beta_mask: 1.0
+
+convergence:
+  mu: 0.01
+  L: 1.0
+
+mdp:
+  M: 4
+  T: 200
+  alpha: 1.0e-2
+  beta: 1.0
+  lambda1: 1.0
+  lambda2: 1.0
+
+network:
+  arch: tsfen
+  num_heads: 2
+  lstm_hidden: 128
+  mlp_hidden: [256, 256]
+
+mappo:
+  E: 200
+  beta: 1.0e-4
+  gamma: 0.98
+  lambda_: 0.95
+  epsilon: 0.2
+  N_batch: 32
+
+maddqn:
+  E: 200
+  beta: 1.0e-4
+  gamma: 0.95
+  replay_buffer: 100000
+  N_batch: 32
+  eps_start: 1.0
+  eps_end: 0.05
+  eps_decay_steps: 5000
+  target_update: 200
+
+fl:
+  root: ./data/ai4mars-dataset-merged-0.1/msl
+  image_dir: images/edr
+  train_label_dir: labels/train
+  test_label_dir: labels/test/masked-gold-min1-100agree
+  sample_frac: 0.3
+  phi: 0.5
+  num_classes: 4
+  ignore_index: 255
+  image_size: 513
+  backbone: resnet101
+  aspp_rates: [6, 12, 18]
+  xi: 1.0e-4
+  poly_power: 0.9
+  epochs: 200
+  batch_size: 8
+  color_jitter: [0.2, 0.2]
+  topk: 0.3
+  quant_bits: 16

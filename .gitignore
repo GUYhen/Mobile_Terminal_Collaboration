@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# datasets and results
+/*/data/
+/*/runs/
+/*/outputs/
+*.pt
+*.pth
+*.ckpt
+
+# editors and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

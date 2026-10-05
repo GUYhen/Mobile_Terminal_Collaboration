@@ -1,0 +1,106 @@
+seed: 0
+device: cuda
+output_dir: runs/alphaomega
+method: lifecycle_aware
+
+data:
+  name: ai4mars
+  img_size: 256
+  test_fraction: 0.2
+  ignore_index: 255
+
+datasets:
+  ai4mars:
+    root: data/AI4MARS
+    classes: [soil, bedrock, sand, big_rock]
+    task_split: [1, 1, 1, 1]
+    max_images: 2000
+    raw_ids: {soil: 0, bedrock: 1, sand: 2, big_rock: 3}
+  marsscapes:
+    root: data/MarsScapes
+    classes: [soil, bedrock, sand]
+    task_split: [1, 1, 1]
+    max_images: 1500
+    raw_ids: {soil: 0, sand: 1, bedrock: 2, gravel: 3, rocks: 4, tracks: 5, shadows: 6, background: 7, unknown: 8}
+  s5mars:
+    root: data/S5Mars
+    classes: [soil, bedrock, rock]
+    task_split: [1, 1, 1]
+    max_images: 1200
+    raw_ids: {soil: 0, sand: 1, bedrock: 2, rock: 3, ridge: 4, trace: 5, hole: 6, sky: 7, rover: 8}
+
+model:
+  pretrained: imagenet
+  output_stride: 16
+  aspp_rates: [6, 12, 18]
+  aspp_channels: 256
+  low_level_channels: 48
+  d: 256
+  layer_groups:
+    s: [backbone.conv1, backbone.bn1, backbone.layer1, backbone.layer2]
+    d: [backbone.layer3, backbone.layer4, aspp, decoder]
+    c: [classifier]
+
+fl:
+  K: 4
+  clients_per_round: 4
+  R: 3
+  beta: 0.1
+
+memory:
+  capacities: [30, 50, 70, 40]
+
+train:
+  local_epochs: 8
+  batch_size: 2
+  lr: 1.0e-3
+  momentum: 0.9
+  lam: 1.0
+
+lsr:
+  alpha: {s: 0.1, d: 0.5, c: 1.0}
+  phi_s: {block: 96, hidden: [200]}
+  phi_d: {block: 128, hidden: [376, 376]}
+  phi_c: {hidden: 234}
+  lr: 1.0e-3
+  momentum: 0.9
+
+rkr:
+  hidden: 408
+  episodes: 100
+  inner_steps: 20
+  inner_lr: 1.0e-2
+  meta_lr: 1.0e-3
+  minus_ratio: 0.5
+  tau: 0.3
+  finetune_epochs: 5
+  trigger_after_final_task: true
+
+scenarios:
+  noniid_moderate:
+    fl: {beta: 0.5}
+    memory: {capacities: [50, 50, 50, 50]}
+  noniid_severe:
+    fl: {beta: 0.3}
+    memory: {capacities: [50, 50, 50, 50]}
+  noniid_extreme:
+    fl: {beta: 0.1}
+    memory: {capacities: [50, 50, 50, 50]}
+  buffer_low:
+    fl: {beta: 0.1}
+    memory: {capacities: [45, 50, 55, 50]}
+  buffer_medium:
+    fl: {beta: 0.1}
+    memory: {capacities: [40, 50, 60, 50]}
+  buffer_high:
+    fl: {beta: 0.1}
+    memory: {capacities: [30, 50, 70, 40]}
+  layer_sensitivity:
+    method: standard
+    data:
+      name: marsscapes
+      classes: [soil, sand, bedrock, gravel, rocks, tracks, shadows, background, unknown]
+      task_split: [5, 4]
+      max_images: null
+    fl: {K: 30, clients_per_round: 30, beta: 0.1}
+    memory: {capacities: 50}
